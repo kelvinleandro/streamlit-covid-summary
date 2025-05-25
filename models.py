@@ -24,7 +24,6 @@ class CovidHistoricalTimeline(BaseModel):
 
 class CovidHistoricalCountry(BaseModel):
     country: str
-    province: Optional[str]
     timeline: CovidHistoricalTimeline
 
 

@@ -21,7 +21,7 @@ def render_timeseries_panel(country: str):
 
     df = pd.DataFrame(
         {
-            "Date": pd.to_datetime(list(series.keys())),
+            "Date": pd.to_datetime(list(series.keys()), format="%m/%d/%y"),
             "Value": list(series.values()),
         }
     )

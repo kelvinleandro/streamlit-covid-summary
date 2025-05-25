@@ -1,3 +1,4 @@
+import streamlit as st
 import asyncio
 import httpx
 from typing import Union, List
@@ -29,7 +30,7 @@ async def get_covid_all_by_country(country: str) -> CovidAll:
         return CovidAll(**response.json())
 
 
-async def get_covid_all(country: str = "all") -> CovidAll:
+async def get_covid_all_async(country: str = "all") -> CovidAll:
     normalized = country.strip().lower()
     return (
         await get_covid_all_global()
@@ -38,11 +39,22 @@ async def get_covid_all(country: str = "all") -> CovidAll:
     )
 
 
-async def get_covid_all_countries(sort_by: str = "cases") -> List[CountriesCovidAll]:
+@st.cache_data
+def get_covid_all(country: str = "all") -> CovidAll:
+    return asyncio.run(get_covid_all_async(country))
+
+
+async def get_covid_all_countries_async(
+    sort_by: str = "cases",
+) -> List[CountriesCovidAll]:
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/countries", params={"sort": sort_by})
         response.raise_for_status()
         return [CountriesCovidAll(**item) for item in response.json()]
+
+
+def get_covid_all_countries(sort_by: str = "cases") -> List[CountriesCovidAll]:
+    return asyncio.run(get_covid_all_countries_async(sort_by))
 
 
 async def get_covid_historical_async(
@@ -61,6 +73,7 @@ async def get_covid_historical_async(
             return CovidHistoricalTimeline(**data)
 
 
+@st.cache_data
 def get_covid_historical(
     country: str = "all",
 ) -> Union[CovidHistoricalTimeline, CovidHistoricalCountry]:
@@ -87,7 +100,7 @@ async def get_vaccine_coverage_by_country(country: str) -> CovidVaccineCountryCo
         return CovidVaccineCountryCoverage(**response.json())
 
 
-async def get_vaccine_coverage(
+async def get_vaccine_coverage_async(
     country: str = "all",
 ) -> Union[TimeLine, CovidVaccineCountryCoverage]:
     normalized = country.strip().lower()
@@ -96,3 +109,10 @@ async def get_vaccine_coverage(
         if normalized == "all"
         else await get_vaccine_coverage_by_country(normalized)
     )
+
+
+@st.cache_data
+def get_vaccine_coverage(
+    country: str = "all",
+) -> Union[TimeLine, CovidVaccineCountryCoverage]:
+    return asyncio.run(get_vaccine_coverage_async(country))
